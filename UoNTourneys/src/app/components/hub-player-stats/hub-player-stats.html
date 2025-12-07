@@ -415,21 +415,6 @@
               </td>
             </ng-container>
 
-            <ng-container matColumnDef="entryWins">
-              <th
-                mat-header-cell
-                *matHeaderCellDef
-                mat-sort-header
-                [matTooltip]="columnTooltips['entryWins']"
-                matTooltipPosition="above">
-                Entry Wins
-              </th>
-              <td mat-cell *matCellDef="let row"
-                  [ngClass]="getStatClass(row, 'entryWins')">
-                {{ row.entryWins }}
-              </td>
-            </ng-container>
-
             <ng-container matColumnDef="entryCount">
               <th
                 mat-header-cell
@@ -437,7 +422,7 @@
                 mat-sort-header
                 [matTooltip]="columnTooltips['entryCount']"
                 matTooltipPosition="above">
-                Entries
+                Entries Attempts
               </th>
               <td mat-cell *matCellDef="let row"
                   [ngClass]="getStatClass(row, 'entryCount')">
