@@ -1,0 +1,687 @@
+<div class="stats-page-container">
+  <mat-card class="stats-card mat-elevation-z4">
+    <mat-card-content>
+      <div class="stats-header">
+        <div>
+          <h1>Hub Player Stats</h1>
+          <p class="subtitle">
+            Aggregated FACEIT stats for all finished matches in this hub.
+          </p>
+        </div>
+
+        <form class="hub-form" (ngSubmit)="reload()">
+          <mat-form-field appearance="outline" class="hub-field">
+            <mat-label>Hub ID</mat-label>
+            <input
+              matInput
+              [(ngModel)]="hubId"
+              name="hubId"
+              placeholder="937c289d-47b2-4fc5-8500-8d73a6e587e9" />
+          </mat-form-field>
+
+          <button mat-raised-button color="accent" type="submit">
+            <mat-icon>refresh</mat-icon>
+            <span>Load stats</span>
+          </button>
+        </form>
+      </div>
+
+      <div *ngIf="loading" class="loading-wrapper">
+        <mat-progress-spinner
+          mode="indeterminate"
+          diameter="56">
+        </mat-progress-spinner>
+      </div>
+
+      <mat-card *ngIf="error" class="error-card">
+        <mat-icon color="warn">error_outline</mat-icon>
+        <span>{{ error }}</span>
+      </mat-card>
+
+      <div *ngIf="!loading && !error && dataSource.data.length">
+        <div class="table-wrapper">
+          <table
+            mat-table
+            [dataSource]="dataSource"
+            matSort
+            #statsSort="matSort"
+            class="stats-table"
+            matSortDisableClear
+            matSortActive="kills"
+            matSortDirection="desc">
+
+            <!-- Position -->
+            <ng-container matColumnDef="pos">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                [matTooltip]="columnTooltips['pos']"
+                matTooltipPosition="above">
+                #
+              </th>
+              <td mat-cell *matCellDef="let row; let i = index">
+                <span class="pos" [ngClass]="getPositionClass(i)">
+                  {{ i + 1 }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Avatar -->
+            <ng-container matColumnDef="avatar">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let row">
+                <div class="avatar-wrapper">
+                  <img
+                    *ngIf="row.avatar"
+                    [src]="row.avatar"
+                    [alt]="row.nickname"
+                    class="avatar" />
+                  <div *ngIf="!row.avatar" class="avatar-placeholder">
+                    {{ row.nickname[0] | uppercase }}
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Nickname -->
+            <ng-container matColumnDef="nickname">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['nickname']"
+                matTooltipPosition="above">
+                Player
+              </th>
+              <td mat-cell *matCellDef="let row">
+                {{ row.nickname }}
+              </td>
+            </ng-container>
+
+            <!-- Matches -->
+            <ng-container matColumnDef="matches">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['matches']"
+                matTooltipPosition="above">
+                Matches
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'matches')">
+                {{ row.matches }}
+              </td>
+            </ng-container>
+
+            <!-- Wins -->
+            <ng-container matColumnDef="wins">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['wins']"
+                matTooltipPosition="above">
+                Wins
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'wins')">
+                {{ row.wins }}
+              </td>
+            </ng-container>
+
+            <!-- WinRate -->
+            <ng-container matColumnDef="winRate">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['winRate']"
+                matTooltipPosition="above">
+                Win %
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'winRate')">
+                {{ row.winRate | number: '1.0-1' }}%
+              </td>
+            </ng-container>
+
+            <!-- Rounds -->
+            <ng-container matColumnDef="rounds">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['rounds']"
+                matTooltipPosition="above">
+                Rounds
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'rounds')">
+                {{ row.rounds }}
+              </td>
+            </ng-container>
+
+            <!-- Kills -->
+            <ng-container matColumnDef="kills">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['kills']"
+                matTooltipPosition="above">
+                Kills
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'kills')">
+                {{ row.kills }}
+              </td>
+            </ng-container>
+
+            <!-- Deaths -->
+            <ng-container matColumnDef="deaths">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['deaths']"
+                matTooltipPosition="above">
+                Deaths
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'deaths')">
+                {{ row.deaths }}
+              </td>
+            </ng-container>
+
+            <!-- KD -->
+            <ng-container matColumnDef="kdRatio">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['kdRatio']"
+                matTooltipPosition="above">
+                K/D
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'kdRatio')">
+                {{ row.kdRatio | number: '1.2-2' }}
+              </td>
+            </ng-container>
+
+            <!-- KR -->
+            <ng-container matColumnDef="krRatio">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['krRatio']"
+                matTooltipPosition="above">
+                K/R
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'krRatio')">
+                {{ row.krRatio | number: '1.2-2' }}
+              </td>
+            </ng-container>
+
+            <!-- ADR -->
+            <ng-container matColumnDef="adr">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['adr']"
+                matTooltipPosition="above">
+                ADR
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'adr')">
+                {{ row.adr | number: '1.0-1' }}
+              </td>
+            </ng-container>
+
+            <!-- HS% -->
+            <ng-container matColumnDef="hsPercent">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['hsPercent']"
+                matTooltipPosition="above">
+                HS %
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'hsPercent')">
+                {{ row.hsPercent | number: '1.0-1' }}%
+              </td>
+            </ng-container>
+
+            <!-- Total Damage -->
+            <ng-container matColumnDef="damage">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['damage']"
+                matTooltipPosition="above">
+                DMG
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'damage')">
+                {{ row.damage }}
+              </td>
+            </ng-container>
+
+            <!-- Total Headshots -->
+            <ng-container matColumnDef="headshots">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['headshots']"
+                matTooltipPosition="above">
+                HS
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'headshots')">
+                {{ row.headshots }}
+              </td>
+            </ng-container>
+
+            <!-- Assists -->
+            <ng-container matColumnDef="assists">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['assists']"
+                matTooltipPosition="above">
+                A
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'assists')">
+                {{ row.assists }}
+              </td>
+            </ng-container>
+
+            <!-- MVPs -->
+            <ng-container matColumnDef="mvps">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['mvps']"
+                matTooltipPosition="above">
+                MVP
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'mvps')">
+                {{ row.mvps }}
+              </td>
+            </ng-container>
+
+            <!-- Double / Triple / Quadro / Penta -->
+            <ng-container matColumnDef="doubleKills">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['doubleKills']"
+                matTooltipPosition="above">
+                2K
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'doubleKills')">
+                {{ row.doubleKills }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="tripleKills">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['tripleKills']"
+                matTooltipPosition="above">
+                3K
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'tripleKills')">
+                {{ row.tripleKills }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="quadroKills">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['quadroKills']"
+                matTooltipPosition="above">
+                4K
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'quadroKills')">
+                {{ row.quadroKills }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="pentaKills">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['pentaKills']"
+                matTooltipPosition="above">
+                5K
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'pentaKills')">
+                {{ row.pentaKills }}
+              </td>
+            </ng-container>
+
+            <!-- Clutch -->
+            <ng-container matColumnDef="clutchKills">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['clutchKills']"
+                matTooltipPosition="above">
+                Clutch Kills
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'clutchKills')">
+                {{ row.clutchKills }}
+              </td>
+            </ng-container>
+
+            <!-- Entry / First -->
+            <ng-container matColumnDef="firstKills">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['firstKills']"
+                matTooltipPosition="above">
+                First Kills
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'firstKills')">
+                {{ row.firstKills }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="entryWins">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['entryWins']"
+                matTooltipPosition="above">
+                Entry Wins
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'entryWins')">
+                {{ row.entryWins }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="entryCount">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['entryCount']"
+                matTooltipPosition="above">
+                Entries
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'entryCount')">
+                {{ row.entryCount }}
+              </td>
+            </ng-container>
+
+            <!-- 1v2 / 1v1 totals -->
+            <ng-container matColumnDef="oneV2Count">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['oneV2Count']"
+                matTooltipPosition="above">
+                1v2s
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'oneV2Count')">
+                {{ row.oneV2Count }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="oneV2Wins">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['oneV2Wins']"
+                matTooltipPosition="above">
+                1v2 Wins
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'oneV2Wins')">
+                {{ row.oneV2Wins }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="oneV1Count">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['oneV1Count']"
+                matTooltipPosition="above">
+                1v1s
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'oneV1Count')">
+                {{ row.oneV1Count }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="oneV1Wins">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['oneV1Wins']"
+                matTooltipPosition="above">
+                1v1 Wins
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'oneV1Wins')">
+                {{ row.oneV1Wins }}
+              </td>
+            </ng-container>
+
+            <!-- Flash -->
+            <ng-container matColumnDef="flashCount">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['flashCount']"
+                matTooltipPosition="above">
+                Flashes
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'flashCount')">
+                {{ row.flashCount }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="flashSuccesses">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['flashSuccesses']"
+                matTooltipPosition="above">
+                Good flashes
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'flashSuccesses')">
+                {{ row.flashSuccesses }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="enemiesFlashed">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['enemiesFlashed']"
+                matTooltipPosition="above">
+                Enemies flashed
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'enemiesFlashed')">
+                {{ row.enemiesFlashed }}
+              </td>
+            </ng-container>
+
+            <!-- Utility totals -->
+            <ng-container matColumnDef="utilityCount">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['utilityCount']"
+                matTooltipPosition="above">
+                Util used
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'utilityCount')">
+                {{ row.utilityCount }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="utilitySuccesses">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['utilitySuccesses']"
+                matTooltipPosition="above">
+                Util successes
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'utilitySuccesses')">
+                {{ row.utilitySuccesses }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="utilityDamage">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['utilityDamage']"
+                matTooltipPosition="above">
+                Util DMG (Total)
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'utilityDamage')">
+                {{ row.utilityDamage }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="utilityUsagePerRound">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['utilityUsagePerRound']"
+                matTooltipPosition="above">
+                Util / rnd
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'utilityUsagePerRound')">
+                {{ row.utilityUsagePerRound | number: '1.2-2' }}
+              </td>
+            </ng-container>
+
+            <!-- Weapon kills -->
+            <ng-container matColumnDef="pistolKills">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['pistolKills']"
+                matTooltipPosition="above">
+                Pistol Kills
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'pistolKills')">
+                {{ row.pistolKills }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="sniperKills">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['sniperKills']"
+                matTooltipPosition="above">
+                Sniper Kills
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'sniperKills')">
+                {{ row.sniperKills }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="knifeKills">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['knifeKills']"
+                matTooltipPosition="above">
+                Knife Kills
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'knifeKills')">
+                {{ row.knifeKills }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="zeusKills">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['zeusKills']"
+                matTooltipPosition="above">
+                Zeus Kills
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'zeusKills')">
+                {{ row.zeusKills }}
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns; trackBy: trackByPlayer">
+            </tr>
+          </table>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

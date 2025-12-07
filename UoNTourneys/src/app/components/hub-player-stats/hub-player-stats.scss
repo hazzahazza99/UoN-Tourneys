@@ -1,0 +1,173 @@
+.stats-page-container {
+  padding: 1.5rem;
+  max-width: 2500px;
+  margin: 0 auto;
+  color: #e5e7eb;
+}
+
+.stats-card {
+  background: rgba(15, 23, 42, 0.96);
+  color: #e5e7eb;
+  border-radius: 18px;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  h1 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.6rem;
+  }
+
+  .subtitle {
+    margin: 0;
+    opacity: 0.8;
+    font-size: 0.9rem;
+  }
+}
+
+.hub-form {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+
+  .hub-field {
+    min-width: 320px;
+  }
+
+  .mat-mdc-text-field-wrapper {
+    background: rgba(15, 23, 42, 0.85);
+  }
+
+  .mat-mdc-input-element {
+    color: #f9fafb;
+  }
+
+  .mat-mdc-floating-label,
+  .mat-mdc-form-field-placeholder {
+    color: rgba(209, 213, 219, 0.8);
+  }
+}
+
+.loading-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.error-card {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(127, 29, 29, 0.4);
+  color: #fecaca;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.stats-table {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+
+  th.mat-mdc-header-cell {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #e5e7eb;
+    border-bottom-color: rgba(148, 163, 184, 0.4);
+    white-space: nowrap;
+  }
+
+  td.mat-mdc-cell {
+    font-size: 0.85rem;
+    color: #f9fafb;
+    border-bottom-color: rgba(30, 64, 175, 0.4);
+    white-space: nowrap;
+  }
+
+  tr.mat-mdc-row:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  tr.mat-mdc-row:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  tr.mat-mdc-row:hover {
+    background-color: rgba(15, 23, 42, 0.8);
+  }
+
+  td.mat-mdc-cell,
+  th.mat-mdc-header-cell {
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* Position column (overall place) */
+.pos {
+  font-weight: 700;
+}
+
+.pos-1 {
+  color: #fbbf24;
+}
+
+.pos-2 {
+  color: #e5e7eb;
+}
+
+.pos-3 {
+  color: #f97316;
+}
+
+/* Per-stat top 3 (gold / silver / bronze) */
+.rank-1 {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.rank-2 {
+  color: #e5e7eb;
+  font-weight: 700;
+}
+
+.rank-3 {
+  color: #f97316;
+  font-weight: 700;
+}
+
+.avatar-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 44px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
