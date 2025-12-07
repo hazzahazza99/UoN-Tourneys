@@ -1,6 +1,6 @@
 [build]
   command   = "npm run build"
-  publish   = "dist/uo-ntourneys/browser"
+  publish   = "dist/UoNTourneys/browser"
   functions = "netlify/functions"
 
 [functions]
