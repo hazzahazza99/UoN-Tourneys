@@ -38,7 +38,7 @@ export interface FaceitMatchSummary {
   providedIn: 'root'
 })
 export class MatchService {
-  private baseUrl = environment.faceitApiBaseUrl;
+  private baseUrl = environment.faceitProxyUrl;
 
   constructor(private http: HttpClient) {}
 
@@ -46,7 +46,7 @@ export class MatchService {
     const url = `${this.baseUrl}/matches/${matchId}/stats`;
 
     const headers = new HttpHeaders({
-      Authorization: `Bearer ${environment.faceitApiKey}`
+      Authorization: `Bearer ${environment.faceitProxyUrl}`
     });
 
     return this.http.get<any>(url, { headers });

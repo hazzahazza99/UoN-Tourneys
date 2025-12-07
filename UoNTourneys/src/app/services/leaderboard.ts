@@ -57,7 +57,7 @@ export interface FaceitLeaderboardResponse {
   providedIn: 'root'
 })
 export class LeaderboardService {
-  private baseUrl = environment.faceitApiBaseUrl;
+  private baseUrl = environment.faceitProxyUrl;
 
   constructor(private http: HttpClient) {}
 
@@ -69,7 +69,7 @@ export class LeaderboardService {
     const url = `${this.baseUrl}/leaderboards/${leaderboardId}?offset=${offset}&limit=${limit}`;
 
     const headers = new HttpHeaders({
-      Authorization: `Bearer ${environment.faceitApiKey}`
+      Authorization: `Bearer ${environment.faceitProxyUrl}`
     });
 
     return this.http.get<FaceitLeaderboardResponse>(url, { headers });

@@ -1,9 +1,10 @@
+// src/app/services/faceit-hub.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-const FACEIT_BASE_URL = 'https://open.faceit.com/data/v4';
+const FACEIT_PROXY_URL = environment.faceitProxyUrl; // -> '/.netlify/functions/faceit-proxy'
 
 interface HubMatchItem {
   match_id: string;
@@ -61,28 +62,22 @@ export interface MatchStatsResponse {
 export class FaceitHubService {
   constructor(private http: HttpClient) {}
 
-  private get headers(): HttpHeaders {
-    return new HttpHeaders({
-      Authorization: `Bearer ${environment.faceitApiKey}`
-    });
-  }
-
   getHubMatches(
     hubId: string,
     offset = 0,
     limit = 100
   ): Observable<HubMatchesResponse> {
-    const url = `${FACEIT_BASE_URL}/hubs/${hubId}/matches?type=past&offset=${offset}&limit=${limit}`;
-    return this.http.get<HubMatchesResponse>(url, { headers: this.headers });
+    const url = `${FACEIT_PROXY_URL}?type=hubMatches&hubId=${hubId}&offset=${offset}&limit=${limit}`;
+    return this.http.get<HubMatchesResponse>(url);
   }
 
   getMatchMeta(matchId: string): Observable<MatchMetaResponse> {
-    const url = `${FACEIT_BASE_URL}/matches/${matchId}`;
-    return this.http.get<MatchMetaResponse>(url, { headers: this.headers });
+    const url = `${FACEIT_PROXY_URL}?type=matchMeta&matchId=${matchId}`;
+    return this.http.get<MatchMetaResponse>(url);
   }
 
   getMatchStats(matchId: string): Observable<MatchStatsResponse> {
-    const url = `${FACEIT_BASE_URL}/matches/${matchId}/stats`;
-    return this.http.get<MatchStatsResponse>(url, { headers: this.headers });
+    const url = `${FACEIT_PROXY_URL}?type=matchStats&matchId=${matchId}`;
+    return this.http.get<MatchStatsResponse>(url);
   }
 }

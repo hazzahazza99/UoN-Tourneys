@@ -1,6 +1,7 @@
 [build]
-  command = "npm run build"
-  publish = "dist/UoNTourneys"
+  command   = "ng build --configuration production"
+  publish   = "dist/UoNTourneys"
+  functions = "netlify/functions"
 
 [functions]
   directory = "netlify/functions"
