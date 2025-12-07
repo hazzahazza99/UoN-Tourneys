@@ -108,9 +108,9 @@ type RankInfo = { first: number; second: number; third: number };
   templateUrl: './hub-player-stats.html',
   styleUrl: './hub-player-stats.scss'
 })
-export class HubPlayerStatsComponent implements OnInit, AfterViewInit {
-  hubId = '937c289d-47b2-4fc5-8500-8d73a6e587e9';
-  leaderboardId = '692def172584a759a9bd3eed'; //update these as needed!
+export class HubPlayerStatsComponent implements OnInit, AfterViewInit { // customs / 1v1 / 5v5 ids in order
+  hubId = 'f1137391-0c60-40f4-8b54-1b7ae8ec5bcc'; //'f1137391-0c60-40f4-8b54-1b7ae8ec5bcc' //'366fcb35-50c0-4da6-96e7-fe4a29710d28' // '937c289d-47b2-4fc5-8500-8d73a6e587e9'
+  leaderboardId = '69319308c5bdcb0bf0f0ee5f'; //'69319308c5bdcb0bf0f0ee5f"' //'693191848bd8357df7ac91ad' // '692def172584a759a9bd3eed' 
 
   maxMatches = 100;
 
@@ -364,17 +364,16 @@ export class HubPlayerStatsComponent implements OnInit, AfterViewInit {
             const pa = a.points ?? 0;
             const pb = b.points ?? 0;
 
-            if (pb !== pa) return pb - pa;
-            if (b.kills !== a.kills) return b.kills - a.kills;
-            if (b.damage !== a.damage) return b.damage - a.damage;
+            if (pb !== pa) return pb - pa;          // 1. Points DESC
+            if (b.wins !== a.wins) return b.wins - a.wins;   // 2. Kills DESC
+            if (b.matches !== a.matches) return b.matches - a.matches; // 4. Matches DESC
 
             return 0;
           }
 
-          if (b.kills !== a.kills) return b.kills - a.kills;
-          if (b.damage !== a.damage) return b.damage - a.damage;
           return 0;
         });
+
 
 
         this.calculateColumnRanks(aggregated);
