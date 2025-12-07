@@ -56,7 +56,6 @@ export interface AggregatedPlayerStats {
   clutchKills: number;
 
   firstKills: number;
-  entryWins: number;
   entryCount: number;
 
   // clutches
@@ -140,7 +139,6 @@ export class HubPlayerStatsComponent implements OnInit, AfterViewInit {
     'clutchKills',
 
     'firstKills',
-    'entryWins',
     'entryCount',
 
     'oneV2Count',
@@ -190,7 +188,6 @@ export class HubPlayerStatsComponent implements OnInit, AfterViewInit {
     'pentaKills',
     'clutchKills',
     'firstKills',
-    'entryWins',
     'entryCount',
 
     'oneV2Count',
@@ -243,7 +240,6 @@ columnTooltips: Record<string, string> = {
   clutchKills: "Clutch kills (1vX situations)",
 
   firstKills: "Opening kills in rounds",
-  entryWins: "Successful entries (first kill where it contributed to round win)",
   entryCount: "Total entry attempts",
 
   oneV2Count: "Total 1v2 situations reached",
@@ -389,7 +385,6 @@ columnTooltips: Record<string, string> = {
           const clutchKills = num('Clutch Kills');
 
           const firstKills = num('First Kills');
-          const entryWins = num('Entry Wins');
           const entryCount = num('Entry Count');
 
           const oneV2Count = num('1v2Count');
@@ -441,7 +436,6 @@ columnTooltips: Record<string, string> = {
               clutchKills,
 
               firstKills,
-              entryWins,
               entryCount,
 
               oneV2Count,
@@ -484,7 +478,6 @@ columnTooltips: Record<string, string> = {
             agg.clutchKills += clutchKills;
 
             agg.firstKills += firstKills;
-            agg.entryWins += entryWins;
             agg.entryCount += entryCount;
 
             agg.oneV2Count += oneV2Count;
