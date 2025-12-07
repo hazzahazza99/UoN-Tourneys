@@ -4,8 +4,11 @@
       <div class="stats-header">
         <div>
           <h1>Hub Player Stats</h1>
-          <p class="subtitle">
+          <p class="title">
             Aggregated FACEIT stats for all finished matches in this hub.
+          </p>
+          <p class="subtitle">
+            Leaderboard is ordered by points, then kills, then damage by default
           </p>
         </div>
 
@@ -47,7 +50,7 @@
             #statsSort="matSort"
             class="stats-table"
             matSortDisableClear
-            matSortActive="kills"
+            matSortActive="points"
             matSortDirection="desc">
 
             <!-- Position -->
@@ -95,6 +98,22 @@
               </th>
               <td mat-cell *matCellDef="let row">
                 {{ row.nickname }}
+              </td>
+            </ng-container>
+
+            <!-- Points -->
+            <ng-container matColumnDef="points">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                mat-sort-header
+                [matTooltip]="columnTooltips['points']"
+                matTooltipPosition="above">
+                Points
+              </th>
+              <td mat-cell *matCellDef="let row"
+                  [ngClass]="getStatClass(row, 'points')">
+                {{ row.points || 0 }}
               </td>
             </ng-container>
 
@@ -662,7 +681,7 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr
               mat-row
-              *matRowDef="let row; columns: displayedColumns; trackBy: trackByPlayer">
+              *matRowDef="let row; columns: displayedColumns">
             </tr>
           </table>
         </div>

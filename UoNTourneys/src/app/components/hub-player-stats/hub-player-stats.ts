@@ -23,6 +23,7 @@ import {
   MatchStatsResponse,
   MatchStatsRound
 } from '../../services/faceit-hub';
+import { firstValueFrom } from 'rxjs';
 
 export interface AggregatedPlayerStats {
   playerId: string;
@@ -78,6 +79,12 @@ export interface AggregatedPlayerStats {
   sniperKills: number;
   knifeKills: number;
   zeusKills: number;
+
+  // leaderboard
+  points: number;
+  leaderboardPosition: number;
+  leaderboardWins: number;
+  leaderboardPlayed: number;
 }
 
 type RankInfo = { first: number; second: number; third: number };
@@ -103,6 +110,8 @@ type RankInfo = { first: number; second: number; third: number };
 })
 export class HubPlayerStatsComponent implements OnInit, AfterViewInit {
   hubId = '937c289d-47b2-4fc5-8500-8d73a6e587e9';
+  leaderboardId = '692def172584a759a9bd3eed'; //update these as needed!
+
   maxMatches = 100;
 
   loading = false;
@@ -112,6 +121,7 @@ export class HubPlayerStatsComponent implements OnInit, AfterViewInit {
     'pos',
     'avatar',
     'nickname',
+    'points',          
 
     'matches',
     'wins',
@@ -163,9 +173,10 @@ export class HubPlayerStatsComponent implements OnInit, AfterViewInit {
 
   dataSource = new MatTableDataSource<AggregatedPlayerStats>([]);
 
-  /** per-column top3 values for gold/silver/bronze */
   private columnRanks: Record<string, RankInfo> = {};
   private rankColumns: (keyof AggregatedPlayerStats)[] = [
+    'points',
+
     'matches',
     'wins',
     'winRate',
@@ -210,59 +221,60 @@ export class HubPlayerStatsComponent implements OnInit, AfterViewInit {
     'zeusKills'
   ];
 
-columnTooltips: Record<string, string> = {
-  pos: "Overall position",
-  avatar: "Player avatar", //not used!
-  nickname: "FACEIT nickname",
-  matches: "Number of matches played",
-  wins: "Total wins across all matches",
-  winRate: "Win percentage across all matches",
-  rounds: "Total rounds played across all matches",
-  kills: "Total kills across all matches",
-  deaths: "Total deaths across all matches",
+  columnTooltips: Record<string, string> = {
+    pos: 'Overall position',
+    avatar: 'Player avatar',
+    nickname: 'FACEIT nickname',
+    points: 'Tournament leaderboard points',
 
-  kdRatio: "Kills divided by deaths (Kill Death Ratio)",
-  krRatio: "Kills per round",
-  adr: "Average damage per round",
-  hsPercent: "Percentage of kills that were headshots",
+    matches: 'Number of matches played',
+    wins: 'Total wins across all matches',
+    winRate: 'Win percentage across all matches',
+    rounds: 'Total rounds played across all matches',
+    kills: 'Total kills across all matches',
+    deaths: 'Total deaths across all matches',
 
-  damage: "Total damage dealt across all matches",
-  headshots: "Total headshots kills across all matches",
+    kdRatio: 'Kills divided by deaths (Kill/Death Ratio)',
+    krRatio: 'Kills per round',
+    adr: 'Average damage per round',
+    hsPercent: 'Percentage of kills that were headshots',
 
-  assists: "Total assists",
-  mvps: "Total Round MVPs",
+    damage: 'Total damage dealt across all matches',
+    headshots: 'Total headshot kills across all matches',
 
-  doubleKills: "Number of rounds with exactly 2 kills",
-  tripleKills: "Number of rounds with exactly 3 kills",
-  quadroKills: "Number of rounds with exactly 4 kills",
-  pentaKills: "Number of rounds with exactly 5 kills",
+    assists: 'Total assists',
+    mvps: 'Total round MVPs',
 
-  clutchKills: "Clutch kills (1vX situations)",
+    doubleKills: 'Number of rounds with exactly 2 kills',
+    tripleKills: 'Number of rounds with exactly 3 kills',
+    quadroKills: 'Number of rounds with exactly 4 kills',
+    pentaKills: 'Number of rounds with exactly 5 kills',
 
-  firstKills: "Opening kills in rounds",
-  entryCount: "Total entry attempts",
+    clutchKills: 'Clutch kills (1vX situations)',
 
-  oneV2Count: "Total 1v2 situations reached",
-  oneV2Wins: "Won 1v2 situations",
-  oneV1Count: "Total 1v1 situations reached",
-  oneV1Wins: "Won 1v1 situations",
+    firstKills: 'Opening kills in rounds',
+    entryCount: 'Total entry attempts',
 
-  flashCount: "Total flashbangs thrown",
-  flashSuccesses: "Effective flashes (blind enemy)",
-  enemiesFlashed: "Total number of Enemies affected by flashes",
+    oneV2Count: 'Total 1v2 situations reached',
+    oneV2Wins: 'Won 1v2 situations',
+    oneV1Count: 'Total 1v1 situations reached',
+    oneV1Wins: 'Won 1v1 situations',
 
-  utilityCount: "Utility pieces thrown",
-  utilitySuccesses: "Utility actions that were effective (Damage Dealt)",
-  utilityDamage: "Total damage done with utility",
-  utilityUsagePerRound: "Utility used per round",
+    flashCount: 'Total flashbangs thrown',
+    flashSuccesses: 'Effective flashes (blind enemy)',
+    enemiesFlashed: 'Total enemies affected by flashes',
 
-  pistolKills: "Kills made with pistols",
-  sniperKills: "AWP/Scout/G3SG1/SCAR-20 sniper kills",
-  knifeKills: "Knife kills",
-  zeusKills: "Zeus taser kills"
-};
+    utilityCount: 'Utility pieces thrown',
+    utilitySuccesses: 'Utility actions that were effective (damage dealt)',
+    utilityDamage: 'Total damage done with utility',
+    utilityUsagePerRound: 'Utility used per round',
 
-  // Use a setter so sort is wired even when the table is under *ngIf
+    pistolKills: 'Kills made with pistols',
+    sniperKills: 'AWP/Scout/G3SG1/SCAR-20 sniper kills',
+    knifeKills: 'Knife kills',
+    zeusKills: 'Zeus taser kills'
+  };
+
   @ViewChild(MatSort)
   set matSort(sort: MatSort | undefined) {
     if (sort) {
@@ -273,12 +285,10 @@ columnTooltips: Record<string, string> = {
   constructor(private hubService: FaceitHubService) {}
 
   ngOnInit(): void {
-    // Auto-load on first render
     this.loadStats();
   }
 
   ngAfterViewInit(): void {
-    // nothing extra; sort is wired via the setter above
   }
 
   reload(): void {
@@ -302,14 +312,16 @@ columnTooltips: Record<string, string> = {
           return;
         }
 
+        let aggregated: AggregatedPlayerStats[] = [];
+
         try {
           const combined: { meta: MatchMetaResponse; stats: MatchStatsResponse }[] =
             [];
 
           for (const matchId of finishedMatchIds) {
             const [meta, stats] = await Promise.all([
-              this.hubService.getMatchMeta(matchId).toPromise(),
-              this.hubService.getMatchStats(matchId).toPromise()
+              firstValueFrom(this.hubService.getMatchMeta(matchId)),
+              firstValueFrom(this.hubService.getMatchStats(matchId))
             ]);
 
             if (meta && stats) {
@@ -317,19 +329,57 @@ columnTooltips: Record<string, string> = {
             }
           }
 
-          const aggregated = this.aggregate(combined);
-
-          // initial order by kills desc
-          aggregated.sort((a, b) => b.kills - a.kills);
-
-          this.calculateColumnRanks(aggregated);
-          this.dataSource.data = aggregated;
+          aggregated = this.aggregate(combined);
         } catch (err) {
           console.error(err);
           this.error = 'Failed to load match stats from FACEIT.';
-        } finally {
           this.loading = false;
+          return;
         }
+
+        try {
+          const board = await firstValueFrom(
+            this.hubService.getHubLeaderboard(this.hubId, this.leaderboardId)
+          );
+
+          const map = new Map(board.items.map((p) => [p.player.user_id, p]));
+
+          for (const player of aggregated) {
+            const entry = map.get(player.playerId);
+            if (!entry) continue;
+
+            player.points = entry.points;
+            player.leaderboardPosition = entry.position;
+            player.leaderboardWins = entry.won;
+            player.leaderboardPlayed = entry.played;
+          }
+        } catch (err) {
+          console.warn('Failed to load leaderboard, falling back to kills sort', err);
+        }
+
+        const hasPoints = aggregated.some((p) => (p.points ?? 0) > 0);
+
+        aggregated.sort((a, b) => {
+          if (hasPoints) {
+            const pa = a.points ?? 0;
+            const pb = b.points ?? 0;
+
+            if (pb !== pa) return pb - pa;
+            if (b.kills !== a.kills) return b.kills - a.kills;
+            if (b.damage !== a.damage) return b.damage - a.damage;
+
+            return 0;
+          }
+
+          if (b.kills !== a.kills) return b.kills - a.kills;
+          if (b.damage !== a.damage) return b.damage - a.damage;
+          return 0;
+        });
+
+
+        this.calculateColumnRanks(aggregated);
+        this.dataSource.data = aggregated;
+        this.loading = false;
       },
       error: (err) => {
         console.error(err);
@@ -405,6 +455,11 @@ columnTooltips: Record<string, string> = {
           const knifeKills = num('Knife Kills');
           const zeusKills = num('Zeus Kills');
 
+          const points = num('Points');
+          const leaderboardPosition = num('Leaderboard Position');
+          const leaderboardWins = num('Leaderboard Wins');
+          const leaderboardPlayed = num('Leaderboard Played');
+
           let agg = playerMap.get(key);
           if (!agg) {
             agg = {
@@ -455,7 +510,13 @@ columnTooltips: Record<string, string> = {
               pistolKills,
               sniperKills,
               knifeKills,
-              zeusKills
+              zeusKills,
+
+              // leaderboard defaults
+              points: 0,
+              leaderboardPosition: 9999,
+              leaderboardWins: 0,
+              leaderboardPlayed: 0
             };
 
             playerMap.set(key, agg);

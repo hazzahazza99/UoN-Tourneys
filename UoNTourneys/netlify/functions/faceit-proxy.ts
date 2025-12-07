@@ -58,6 +58,18 @@ export const handler: Handler = async (event) => {
         break;
       }
 
+      case 'matchLeaderboard': {
+        const leaderboardId = params.leaderboardId;
+        if (!leaderboardId) {
+          return {
+            statusCode: 400,
+            body: JSON.stringify({ error: 'Missing leaderboardId' })
+          };
+        }
+        url = `${FACEIT_BASE_URL}/leaderboards/${leaderboardId}`;
+        break;
+      }
+
       default:
         return {
           statusCode: 400,

@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-const FACEIT_PROXY_URL = environment.faceitProxyUrl; // -> '/.netlify/functions/faceit-proxy'
+const FACEIT_PROXY_URL = environment.faceitProxyUrl;
 
 interface HubMatchItem {
   match_id: string;
@@ -80,4 +80,60 @@ export class FaceitHubService {
     const url = `${FACEIT_PROXY_URL}?type=matchStats&matchId=${matchId}`;
     return this.http.get<MatchStatsResponse>(url);
   }
+
+  getHubLeaderboard(hubId: string, leaderboardId: string): Observable<LeaderboardResponse> {
+  const url = `${FACEIT_PROXY_URL}?type=matchLeaderboard&leaderboardId=${leaderboardId}`;
+  return this.http.get<LeaderboardResponse>(url);
 }
+}
+
+export interface LeaderboardPlayer {
+  user_id: string;
+  nickname: string;
+  avatar?: string;
+  country: string;
+  skill_level: number;
+  faceit_url: string;
+}
+
+export interface LeaderboardEntry {
+  player: LeaderboardPlayer;
+  played: number;
+  won: number;
+  lost: number;
+  draw: number;
+  points: number;
+  win_rate: number;
+  current_streak: number;
+  position: number;
+}
+
+export interface LeaderboardMeta {
+  leaderboard_id: string;
+  leaderboard_name: string;
+  leaderboard_type: string;
+  leaderboard_mode: string;
+  competition_type: string;
+  competition_id: string;
+  game_id: string;
+  region: string;
+  ranking_type: string;
+  start_date: number;
+  end_date: number;
+  min_matches: number;
+  points_type: string;
+  ranking_boost: number;
+  points_per_win: number;
+  points_per_loss: number;
+  points_per_draw: number;
+  starting_points: number;
+  status: string;
+}
+
+export interface LeaderboardResponse {
+  leaderboard: LeaderboardMeta;
+  items: LeaderboardEntry[];
+  start: number;
+  end: number;
+}
+
